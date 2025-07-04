@@ -11,8 +11,19 @@ export class SpotifyTokenHandler {
 	getAccessToken = async (): Promise<SpotifyToken> => {
 		return new Promise<SpotifyToken>((resolve, reject) => {
 			(async () => {
+				const executablePath =
+					process.env.BROWSER_PATH && process.env.BROWSER_PATH.trim() !== ""
+						? process.env.BROWSER_PATH
+						: undefined;
+				const launchOptions: Parameters<typeof playwright.chromium.launch>[0] =
+					{
+						headless: true,
+					};
+				if (executablePath) {
+					launchOptions.executablePath = executablePath;
+				}
 				const browser: Browser | undefined = await playwright.chromium
-					.launch({ headless: true /*, executablePath: "..." */ })
+					.launch(launchOptions)
 					.catch(contextLogWithUndefined.bind(null, "Failed to spawn browser"));
 				if (!browser) return reject(new Error("Failed to launch browser"));
 

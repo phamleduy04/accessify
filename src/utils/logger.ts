@@ -1,23 +1,29 @@
-import chalk from "chalk";
-
 export function logWithTimestamp(
 	level: "log" | "error" | "warn" | "info",
 	...args: unknown[]
 ) {
 	const timestamp = `[${new Date().toUTCString()}]`;
 	let coloredLevel: string;
+	const RESET = "\x1b[0m";
+	const BOLD = "\x1b[1m";
+	const RED = "\x1b[31m";
+	const YELLOW = "\x1b[33m";
+	const BLUE = "\x1b[34m";
+	const GREEN = "\x1b[32m";
+	const GRAY = "\x1b[90m";
+
 	if (level === "error") {
-		coloredLevel = chalk.red.bold("[ERROR]");
+		coloredLevel = `${RED}${BOLD}[ERROR]${RESET}`;
 	} else if (level === "warn") {
-		coloredLevel = chalk.yellow.bold("[WARN]");
+		coloredLevel = `${YELLOW}${BOLD}[WARN]${RESET}`;
 	} else if (level === "info") {
-		coloredLevel = chalk.blue.bold("[INFO]");
+		coloredLevel = `${BLUE}${BOLD}[INFO]${RESET}`;
 	} else {
-		coloredLevel = chalk.green.bold("[LOG]");
+		coloredLevel = `${GREEN}${BOLD}[LOG]${RESET}`;
 	}
 	// Print with colorized level and timestamp
 	(console[level] as (...args: unknown[]) => void)(
-		`${coloredLevel} ${chalk.gray(timestamp)}`,
+		`${coloredLevel} ${GRAY}${timestamp}${RESET}`,
 		...args,
 	);
 }

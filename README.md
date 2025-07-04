@@ -14,14 +14,35 @@ A simple REST API to generate and cache anonymous Spotify access tokens using Pl
 - TypeScript, modular and maintainable structure
 
 ## Requirements
-- Node.js 22+
-- Playwright browsers (can be installed manually by `npx playwright install chromium`)
+- Node.js 18+
+- Chromium browser (see below for installation instructions)
 
 ## Install dependencies
 
 ```bash
 npm install
 ```
+
+## Chromium Installation
+
+### For most environments (not Pterodactyl):
+Install Playwright's bundled Chromium automatically:
+
+```bash
+npx playwright install chromium
+```
+
+### For Pterodactyl (or restricted environments):
+1. **Download Chromium**
+   - Download a compatible Chromium build from [https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html](https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html) (choose your OS/arch, e.g. Linux x64).
+2. **Extract the archive** and upload the `chrome`/`chromium` binary (and its folder) to your Pterodactyl server, e.g. `/home/container/chrome-linux/chrome`.
+3. **Set the path in `.env`**:
+   ```properties
+   CHROME_PATH=/home/container/chrome-linux/chrome
+   ```
+4. **Restart your server/container**.
+
+If `CHROME_PATH` is not set, Playwright will use its default browser (if installed).
 
 ## Build & Run
 
@@ -51,8 +72,9 @@ spotify:
 ```
 
 ## Notes
-- For deployment on server/CI, make sure Playwright browsers are installed (`npx playwright install chromium`).
-- For custom Chromium, set `executablePath` in the handler.
+- For deployment on server/CI, make sure Chromium is available:
+  - Use `npx playwright install chromium` for most environments.
+  - For Pterodactyl, upload Chromium manually and set `CHROME_PATH` in `.env`.
 - Request logs include IP and user-agent.
 
 ---
