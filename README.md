@@ -15,7 +15,7 @@ A simple REST API to generate and cache anonymous Spotify access tokens using Pl
 
 ## Requirements
 - Node.js 22+
-- Playwright browsers (see below)
+- Playwright browsers (can be installed manually by `npx playwright install chromium`)
 
 ## Install dependencies
 
@@ -33,12 +33,10 @@ npm start
 
 - **GET /spotifytoken**
   - Returns a cached Spotify access token (auto-refresh if expired)
-  - Query param: `force=1` to force refresh token
 
 Example:
 ```bash
 curl http://localhost:3000/spotifytoken
-curl http://localhost:3000/spotifytoken?force=1
 ```
 
 ## Integration: LavaSrc Custom Anonymous Token Endpoint
