@@ -20,29 +20,13 @@ A simple REST API to generate and cache anonymous Spotify access tokens using Pl
 ## Install dependencies
 
 ```bash
-bun install # or npm install
+npm install
 ```
 
-## Install Playwright browsers
+## Build & Run
 
 ```bash
-npx playwright install
-# or only Chromium:
-npx playwright install chromium
-```
-
-## Build & Run (Production)
-
-```bash
-bun run start
-# or
-npm run start
-```
-
-## Run (Development, with tsx)
-
-```bash
-npx tsx src/server.ts
+npm start
 ```
 
 ## API Usage
@@ -74,5 +58,3 @@ spotify:
 - Request logs include IP and user-agent.
 
 ---
-
-This project was created using Bun & Node.js. See [Bun](https://bun.sh) and [Hono](https://hono.dev/).
