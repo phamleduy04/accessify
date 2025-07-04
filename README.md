@@ -14,7 +14,7 @@ A simple REST API to generate and cache anonymous Spotify access tokens using Pl
 - TypeScript, modular and maintainable structure
 
 ## Requirements
-- Node.js 18+
+- Node.js 22+
 - Playwright browsers (see below)
 
 ## Install dependencies
