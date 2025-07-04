@@ -8,8 +8,8 @@ const app = new Hono();
 app.get("/spotifytoken", handler.honoHandler);
 
 app.onError((err: unknown, c: Context) => {
-  logWithTimestamp("error", err);
-  return c.json({ error: "Internal Server Error" }, 500);
+	logWithTimestamp("error", err);
+	return c.json({ error: "Internal Server Error" }, 500);
 });
 
 export default app;
