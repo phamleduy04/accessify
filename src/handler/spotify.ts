@@ -7,8 +7,45 @@ import type { Context } from "hono";
 export class SpotifyTokenHandler {
 	public semaphore = new Semaphore();
 	public cachedAccessToken: SpotifyToken | undefined = undefined;
+	private refreshTimeout: NodeJS.Timeout | undefined;
 
-	getAccessToken = async (): Promise<SpotifyToken> => {
+	constructor() {
+		// fetch initial token on startup
+		this.getAccessToken()
+			.then((token) => {
+				this.cachedAccessToken = token;
+				logWithTimestamp("info", "Initial Spotify token fetched");
+			})
+			.catch((err) => {
+				logWithTimestamp("warn", "Failed to fetch initial Spotify token", err);
+			});
+	}
+
+	private scheduleNextRefresh() {
+		if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
+		const token = this.cachedAccessToken;
+		if (!token) return;
+		const now = Date.now();
+		const expiresIn = token.accessTokenExpirationTimestampMs - now;
+		const refreshIn = Math.max(expiresIn + 100, 0); // refresh this trash thing 100ms after expired
+		this.refreshTimeout = setTimeout(async () => {
+			try {
+				const release = await this.semaphore.acquire();
+				try {
+					const newToken = await this.getAccessToken();
+					this.cachedAccessToken = newToken;
+					logWithTimestamp("info", "Spotify token auto-refreshed (timeout)");
+				} finally {
+					release();
+				}
+			} catch (err) {
+				logWithTimestamp("warn", "Failed to auto-refresh Spotify token", err);
+			}
+			this.scheduleNextRefresh();
+		}, refreshIn);
+	}
+
+	public getAccessToken = async (): Promise<SpotifyToken> => {
 		return new Promise<SpotifyToken>((resolve, reject) => {
 			(async () => {
 				const executablePath =
@@ -16,12 +53,9 @@ export class SpotifyTokenHandler {
 						? process.env.BROWSER_PATH
 						: undefined;
 				const launchOptions: Parameters<typeof playwright.chromium.launch>[0] =
-					{
-						headless: true,
-					};
-				if (executablePath) {
-					launchOptions.executablePath = executablePath;
-				}
+					{ headless: true };
+				if (executablePath) launchOptions.executablePath = executablePath;
+
 				const browser: Browser | undefined = await playwright.chromium
 					.launch(launchOptions)
 					.catch(contextLogWithUndefined.bind(null, "Failed to spawn browser"));
@@ -79,6 +113,9 @@ export class SpotifyTokenHandler {
 					page.removeAllListeners();
 					await browser.close();
 					clearTimeout(timeout);
+					// Set token dan jadwalkan refresh otomatis
+					this.cachedAccessToken = json as SpotifyToken;
+					this.scheduleNextRefresh();
 					resolve(json as SpotifyToken);
 				});
 
@@ -93,15 +130,14 @@ export class SpotifyTokenHandler {
 		});
 	};
 
-	honoHandler = async (c: Context): Promise<Response> => {
+	public honoHandler = async (c: Context): Promise<Response> => {
 		const isForce = ["1", "yes", "true"].includes(
 			(c.req.query("force") || "").toLowerCase(),
 		);
-		// Ambil IP address dari header atau raw request (tanpa any)
+		// i have no idea how to make this work
 		let ip = c.req.header("x-forwarded-for");
 		if (!ip) {
 			const raw = c.req.raw;
-			// Node.js IncomingMessage has socket.remoteAddress
 			if (typeof raw === "object" && raw && "socket" in raw) {
 				const socket = (raw as { socket?: { remoteAddress?: string } }).socket;
 				if (socket && typeof socket.remoteAddress === "string") {
@@ -138,11 +174,10 @@ export class SpotifyTokenHandler {
 					Date.now()
 				);
 			},
-			refresh() {
-				return this.fetch().then((data) => {
-					thisHandler.cachedAccessToken = data;
-					return data;
-				});
+			async refresh() {
+				const data = await this.fetch();
+				thisHandler.cachedAccessToken = data;
+				return data;
 			},
 		};
 
