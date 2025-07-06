@@ -1,4 +1,9 @@
-import playwright, { type Browser, type Page, type Request } from "playwright";
+import playwright, {
+	type Browser,
+	type LaunchOptions,
+	type Page,
+	type Request,
+} from "playwright";
 import { Semaphore } from "../utils/semaphore";
 import { logWithTimestamp, contextLogWithUndefined } from "../utils/logger";
 import type { SpotifyToken, TokenProxy } from "../types/spotify";
@@ -52,8 +57,7 @@ export class SpotifyTokenHandler {
 					process.env.BROWSER_PATH && process.env.BROWSER_PATH.trim() !== ""
 						? process.env.BROWSER_PATH
 						: undefined;
-				const launchOptions: Parameters<typeof playwright.chromium.launch>[0] =
-					{ headless: true };
+				const launchOptions: LaunchOptions = { headless: true };
 				if (executablePath) launchOptions.executablePath = executablePath;
 
 				const browser: Browser | undefined = await playwright.chromium
